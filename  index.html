@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Двор Фортуны</title>
+<!-- Онлайн-шрифт Poppins -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;700&display=swap" rel="stylesheet">
+
+<!-- Подключение CSS -->
+<link rel="stylesheet" href="stylee.css">
+</head>
+<body>
+    
+<header>
+    <h1>DVOR FORTUNI</h1>
+</header>
+
+<main>
+    <div class="wheels">
+        <div class="wheel-container">
+            <div class="wheel-title">🎯 Колесо участников</div>
+            <canvas id="mainWheel" width="400" height="400"></canvas>
+        </div>
+        <div class="wheel-container">
+            <div class="wheel-title">🎁 Колесо бонусов</div>
+            <canvas id="bonusWheel" width="400" height="400"></canvas>
+        </div>
+    </div>
+
+    <div class="buttons">
+        <button id="spinBtn">Крутить оба</button>
+    </div>
+
+    <!-- Новый общий контейнер для панелей управления -->
+    <div class="panels-wrapper">
+        <div class="panels">
+            <h2>👥 Управление участниками</h2>
+            <form id="participantForm">
+                <input type="text" id="participantName" placeholder="Имя / Приз" required>
+                <button type="submit">➕ Добавить</button>
+            </form>
+            <div class="list" id="participantList"></div>
+        </div>
+
+        <div class="panels">
+            <h2>🎁 Управление бонусами</h2>
+            <form id="bonusForm">
+                <input type="text" id="bonusTask" placeholder="Текст бонусного задания" required>
+                <button type="submit">➕ Добавить</button>
+            </form>
+            <div class="list" id="bonusList"></div>
+        </div>
+    </div>
+</main>
+
+
+<!-- Подключение скрипта -->
+<script src="script.js"></script>
+</body>
+</html>
