@@ -11,10 +11,11 @@
 <!-- Подключение CSS -->
 <link rel="stylesheet" href="stylee.css">
 </head>
+
 <body>
     
 <header>
-    <h1>DVOR FORTUNI</h1>
+    <h1>DM FORTUNI</h1>
 </header>
 
 <main>
@@ -39,6 +40,7 @@
             <h2>👥 Управление участниками</h2>
             <form id="participantForm">
                 <input type="text" id="participantName" placeholder="Имя / Приз" required>
+                <input type="url" id="participantImage" placeholder="Ссылка на фото (необязательно)">
                 <button type="submit">➕ Добавить</button>
             </form>
             <div class="list" id="participantList"></div>
@@ -58,5 +60,16 @@
 
 <!-- Подключение скрипта -->
 <script src="script.js"></script>
+
+<!-- Pop-up победителя -->
+<div id="winnerPopup" class="popup">
+  <div class="popup-content">
+    <span class="close-btn">&times;</span>
+    <img id="popupImage" src="" alt="Фото победителя">
+    <h2 id="popupWinner"></h2>
+    <p id="popupBonus"></p>
+  </div>
+</div>
+
 </body>
 </html>

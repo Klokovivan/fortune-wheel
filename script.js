@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
     let participants = [
-        { label: "Приз 1", color: "#FFD700" },
-        { label: "Приз 2", color: "#FF6F61" }
+        { label: "Приз 1", color: "#FFD700", image: null },
+        { label: "Приз 2", color: "#FF6F61", image: null }
     ];
     let bonuses = [
         "Станцуй весёлый танец 💃",
@@ -15,13 +15,17 @@ document.addEventListener("DOMContentLoaded", () => {
     let angleMain = 0;
     let angleBonus = 0;
     let spinning = false;
-    let lastWinnerIndex = null;
+
+    // Массив доступных участников (меняется по мере игры)
+    let availableParticipants = [...participants];
+    // История выданных бонусов для каждого участника
+    let bonusHistory = {};
+
     const mainCanvas = document.getElementById("mainWheel");
     const mainCtx = mainCanvas.getContext("2d");
     const bonusCanvas = document.getElementById("bonusWheel");
     const bonusCtx = bonusCanvas.getContext("2d");
 
-    // Функции работы с цветами
     function darkenColor(color, percent) {
         const num = parseInt(color.replace("#",""),16);
         const amt = Math.round(2.55 * percent);
@@ -43,13 +47,12 @@ document.addEventListener("DOMContentLoaded", () => {
         ).toString(16).slice(1);
     }
 
-    // Отрисовка колеса
     function drawWheel(ctx, items, angle, size) {
         if (items.length === 0) return;
         ctx.clearRect(0, 0, size, size);
         let arc = 2 * Math.PI / items.length;
 
-        // Красно-белая обводка
+        // Обводка
         let borderSegments = 60;
         let borderArc = (2 * Math.PI) / borderSegments;
         for (let i = 0; i < borderSegments; i++) {
@@ -80,7 +83,6 @@ document.addEventListener("DOMContentLoaded", () => {
             ctx.lineWidth = 2;
             ctx.stroke();
 
-            // Текст
             ctx.save();
             ctx.translate(size/2, size/2);
             ctx.rotate(startAngle + arc / 2);
@@ -103,7 +105,7 @@ document.addEventListener("DOMContentLoaded", () => {
         ctx.fill();
         ctx.stroke();
 
-        // Белый центр (уменьшенный)
+        // Белый центр
         ctx.beginPath();
         ctx.arc(size/2, size/2, size/9, 0, 2 * Math.PI);
         ctx.fillStyle = "#fff";
@@ -112,7 +114,6 @@ document.addEventListener("DOMContentLoaded", () => {
         ctx.fill();
         ctx.shadowBlur = 0;
 
-        // Золотая окантовка
         ctx.beginPath();
         ctx.arc(size/2, size/2, size/2 - 1, 0, 2 * Math.PI);
         ctx.lineWidth = 4;
@@ -120,13 +121,13 @@ document.addEventListener("DOMContentLoaded", () => {
         ctx.stroke();
     }
 
-    // Запуск вращения
+    function getRandomIndex(array) {
+        return Math.floor(Math.random() * array.length);
+    }
+
     function spinBothWheels() {
         if (spinning || participants.length === 0 || bonuses.length === 0) return;
         spinning = true;
-
-        mainCanvas.classList.add("spinning");
-        bonusCanvas.classList.add("spinning");
 
         let spinAngleMain = Math.random() * 2000 + 2000;
         let spinAngleBonus = Math.random() * 2000 + 2000;
@@ -138,42 +139,59 @@ document.addEventListener("DOMContentLoaded", () => {
             if (elapsed < duration) {
                 angleMain += (spinAngleMain / duration) * 16;
                 angleBonus -= (spinAngleBonus / duration) * 16;
-                drawWheel(mainCtx, participants, angleMain, mainCanvas.width);
-                drawWheel(bonusCtx, bonuses.map(b => ({label: b, color: "#FFD700"})), angleBonus, bonusCanvas.width);
+                drawWheel(mainCtx, availableParticipants, angleMain, mainCanvas.width);
+                drawWheel(bonusCtx, bonuses.map((b, i) => ({label: "Бонус", color: sectorColors[i % sectorColors.length]})), angleBonus, bonusCanvas.width);
                 requestAnimationFrame(animate);
             } else {
                 spinning = false;
 
-                mainCanvas.classList.remove("spinning");
-                bonusCanvas.classList.remove("spinning");
+                // Если кончились доступные участники — сбрасываем
+                if (availableParticipants.length === 0) {
+                    availableParticipants = [...participants];
+                }
 
+                // Выбор участника
+                let winnerIndexLocal = getRandomIndex(availableParticipants);
+                let winner = availableParticipants[winnerIndexLocal];
+                availableParticipants.splice(winnerIndexLocal, 1);
+
+                // История бонусов для участника
+                if (!bonusHistory[winner.label]) {
+                    bonusHistory[winner.label] = [];
+                }
+                // Фильтруем доступные бонусы
+                let availableBonuses = bonuses
+                    .map((b, i) => ({ index: i, value: b }))
+                    .filter(b => !bonusHistory[winner.label].includes(b.index));
+                // Если бонусов не осталось — сброс
+                if (availableBonuses.length === 0) {
+                    bonusHistory[winner.label] = [];
+                    availableBonuses = bonuses.map((b, i) => ({ index: i, value: b }));
+                }
+                let randomBonusObj = availableBonuses[getRandomIndex(availableBonuses)];
+                bonusHistory[winner.label].push(randomBonusObj.index);
+
+                // Рисуем финальное состояние
                 drawWheel(mainCtx, participants, angleMain, mainCanvas.width);
-                drawWheel(bonusCtx, bonuses.map(b => ({label: b, color: "#FFD700"})), angleBonus, bonusCanvas.width);
+                drawWheel(bonusCtx, bonuses.map((b, i) => ({label: "Бонус", color: sectorColors[i % sectorColors.length]})), angleBonus, bonusCanvas.width);
 
-                let winnerIndex = getWinnerIndex(participants, angleMain, lastWinnerIndex);
-                lastWinnerIndex = winnerIndex;
-                let bonusIndex = getWinnerIndex(bonuses.map((b,i)=>({label:b,color:"#FFD700"})), angleBonus, null);
-
-                // Показываем pop-up вместо alert
-                document.getElementById("popupWinner").innerText = `🏆 Победитель: ${participants[winnerIndex].label}`;
-                document.getElementById("popupBonus").innerText = `🎁 Бонус: ${bonuses[bonusIndex]}`;
-                document.getElementById("popupDescription").innerText = "Здесь может быть скрытое описание задания.";
-                document.getElementById("popupDescription").style.display = "none";
+                // Попап
+                document.getElementById("popupWinner").innerText = `🏆 Победитель: ${winner.label}`;
+                document.getElementById("popupBonus").innerText = `🎁 Бонус: ${randomBonusObj.value}`;
+                if (winner.image) {
+                    const imgEl = document.getElementById("popupImage");
+                    imgEl.src = winner.image;
+                    imgEl.style.display = "block";
+                } else {
+                    document.getElementById("popupImage").style.display = "none";
+                }
                 document.getElementById("winnerPopup").style.display = "flex";
             }
         }
         requestAnimationFrame(animate);
     }
 
-    function getWinnerIndex(list, angle, excludeIndex) {
-        let arc = 2 * Math.PI / list.length;
-        let index = Math.floor(((2 * Math.PI - (angle % (2 * Math.PI))) % (2 * Math.PI)) / arc);
-        if (excludeIndex != null && list.length > 1 && index === excludeIndex) {
-            index = (index + 1) % list.length;
-        }
-        return index;
-    }
-
+    // Обновления списков
     function updateParticipantList() {
         const list = document.getElementById("participantList");
         list.innerHTML = "";
@@ -188,7 +206,7 @@ document.addEventListener("DOMContentLoaded", () => {
             btn.addEventListener("click", (e) => {
                 const idx = parseInt(e.target.dataset.index);
                 participants.splice(idx, 1);
-                if (idx === lastWinnerIndex) lastWinnerIndex = null;
+                availableParticipants = availableParticipants.filter(p => p.label !== participants[idx]?.label);
                 updateParticipantList();
                 drawWheel(mainCtx, participants, angleMain, mainCanvas.width);
             });
@@ -208,17 +226,21 @@ document.addEventListener("DOMContentLoaded", () => {
             btn.addEventListener("click", (e) => {
                 bonuses.splice(parseInt(e.target.dataset.index), 1);
                 updateBonusList();
-                drawWheel(bonusCtx, bonuses.map(b => ({label: b, color: "#FFD700"})), angleBonus, bonusCanvas.width);
+                drawWheel(bonusCtx, bonuses.map((b, i) => ({label: "Бонус", color: sectorColors[i % sectorColors.length]})), angleBonus, bonusCanvas.width);
             });
         });
     }
 
+    // Формы
     document.getElementById("participantForm").addEventListener("submit", (e) => {
         e.preventDefault();
         const name = document.getElementById("participantName").value.trim();
+        const image = document.getElementById("participantImage").value.trim();
         if (name) {
-            participants.push({label: name, color: sectorColors[participants.length % sectorColors.length]});
+            participants.push({label: name, color: sectorColors[participants.length % sectorColors.length], image: image || null});
+            availableParticipants = [...participants];
             document.getElementById("participantName").value = "";
+            document.getElementById("participantImage").value = "";
             updateParticipantList();
             drawWheel(mainCtx, participants, angleMain, mainCanvas.width);
         }
@@ -231,23 +253,25 @@ document.addEventListener("DOMContentLoaded", () => {
             bonuses.push(txt);
             document.getElementById("bonusTask").value = "";
             updateBonusList();
-            drawWheel(bonusCtx, bonuses.map(b => ({label: b, color: "#FFD700"})), angleBonus, bonusCanvas.width);
+            drawWheel(bonusCtx, bonuses.map((b, i) => ({label: "Бонус", color: sectorColors[i % sectorColors.length]})), angleBonus, bonusCanvas.width);
         }
     });
 
     document.getElementById("spinBtn").addEventListener("click", spinBothWheels);
 
-    // Логика управления pop-up
+    // Закрытие попапа
     document.querySelector(".close-btn").addEventListener("click", () => {
         document.getElementById("winnerPopup").style.display = "none";
     });
-    document.getElementById("showDescriptionBtn").addEventListener("click", () => {
-        document.getElementById("popupDescription").style.display = "block";
+    document.getElementById("winnerPopup").addEventListener("click", (e) => {
+        if (e.target === document.getElementById("winnerPopup")) {
+            document.getElementById("winnerPopup").style.display = "none";
+        }
     });
 
     // Первая отрисовка
     updateParticipantList();
     updateBonusList();
     drawWheel(mainCtx, participants, angleMain, mainCanvas.width);
-    drawWheel(bonusCtx, bonuses.map(b => ({label: b, color: "#FFD700"})), angleBonus, bonusCanvas.width);
+    drawWheel(bonusCtx, bonuses.map((b, i) => ({label: "Бонус", color: sectorColors[i % sectorColors.length]})), angleBonus, bonusCanvas.width);
 });

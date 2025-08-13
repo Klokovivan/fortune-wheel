@@ -197,3 +197,72 @@ form input {
 .deleteBtn:hover {
     background: darkred;
 }
+
+.popup {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  justify-content: center;
+  align-items: center;
+}
+
+/* Pop-up */
+.popup {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  justify-content: center;
+  align-items: center;
+}
+
+.popup-content {
+  position: relative;
+  background: #111;
+  padding: 20px;
+  border-radius: 12px;
+  width: 320px;
+  text-align: center;
+  box-shadow: 0 0 20px rgba(255,215,0,0.5);
+  border: 2px solid #FFD700;
+  animation: scaleIn 0.3s ease;
+}
+
+#popupImage {
+    display: block;              /* Фото на своей строке */
+    margin: 15px auto;            /* Центрируем по горизонтали */
+    max-width: 250px;             /* Максимальная ширина фото */
+    max-height: 250px;            /* Максимальная высота фото */
+    border-radius: 12px;          /* Скруглённые углы */
+    border: 3px solid #FFD700;    /* Золотая рамка */
+    object-fit: cover;            /* Заполнение без искажений */
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.6); /* Мягкое золотое свечение */
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.close-btn {
+  position: absolute;
+  right: 15px;
+  top: 10px;
+  font-size: 28px;
+  cursor: pointer;
+  color: #FFD700;
+}
+
+.close-btn:hover {
+  color: #fff;
+}
+
